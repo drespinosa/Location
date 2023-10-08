@@ -1,20 +1,22 @@
-package com.example.location
+package com.example.location.ui.activities
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import com.example.location.domain.LocationWorker
+import com.example.location.R
 import com.example.location.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
@@ -43,13 +45,13 @@ class MainActivity : AppCompatActivity() {
 
         // Crear una restricción para ejecutar el trabajo periódicamente
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED) // Requiere conexión a Internet
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         // Crear una solicitud para el trabajo periódico
         val periodicWorkRequest = PeriodicWorkRequest.Builder(
             LocationWorker::class.java,
-            15, // Intervalo de ejecución en minutos
+            15,
             TimeUnit.MINUTES
         )
             .setConstraints(constraints)
@@ -60,15 +62,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)

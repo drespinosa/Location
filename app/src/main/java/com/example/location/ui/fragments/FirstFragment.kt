@@ -1,11 +1,16 @@
-package com.example.location
+package com.example.location.ui.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.example.location.data.model.Coordinates
+import com.example.location.ui.viewmodel.LocationViewModel
+import com.example.location.R
+import com.example.location.ui.viewmodel.ViewModelFactory
 import com.example.location.databinding.FragmentFirstBinding
 
 /**
@@ -14,15 +19,11 @@ import com.example.location.databinding.FragmentFirstBinding
 class FirstFragment : Fragment() {
 
     private var _binding: FragmentFirstBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
+    private lateinit var locationViewModel: LocationViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
@@ -31,6 +32,9 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        locationViewModel = ViewModelProvider(requireActivity(), ViewModelFactory())[LocationViewModel::class.java]
+        locationViewModel.saveCoordinates(Coordinates.latitude, Coordinates.longitude)
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
