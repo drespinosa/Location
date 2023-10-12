@@ -6,10 +6,10 @@ import com.example.location.data.model.LocationDTO
 
 class LocationRepository() {
 
-    private val api = RetrofitHelper.retrofitClient
+    private val api = RetrofitHelper.getApiService()
 
     suspend fun saveLocation(latitude: Double, longitude: Double) {
-        val response = api.postLocation(LocationDTO(latitude, longitude))
+        val response = api.sendLocation(LocationDTO(latitude, longitude))
         Log.i("LocationRepository", "Response: $response")
     }
 

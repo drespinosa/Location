@@ -1,5 +1,6 @@
 package com.example.location.ui.activities
 
+import com.example.location.domain.LocationWorker
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -10,10 +11,10 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import com.example.location.domain.LocationWorker
 import com.example.location.R
 import com.example.location.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
@@ -58,7 +59,11 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         // Programar el trabajo periódico
-        WorkManager.getInstance(applicationContext).enqueue(periodicWorkRequest)
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "LocationWork",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            periodicWorkRequest
+        )
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

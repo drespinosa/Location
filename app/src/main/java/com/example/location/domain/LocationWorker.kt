@@ -3,38 +3,50 @@ package com.example.location.domain
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.work.Worker
+import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.location.data.model.Coordinates
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.example.location.core.RetrofitHelper
+import com.example.location.data.model.LocationDTO
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Tasks
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class LocationWorker(appContext: Context, workerParams: WorkerParameters) : Worker(appContext, workerParams) {
+class LocationWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
-    private val locationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(appContext)
-
-    override fun doWork(): Result {
-        try {
-            // Verificar y solicitar permisos de ubicación si es necesario
-            if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                Log.d("LocationWorker", "falla: ${Result.failure()}")
-                return Result.failure()
+    override suspend fun doWork(): Result {
+        return try {
+            val location = getLocationWithTimeout()
+            if (location != null) {
+                val locationDTO = LocationDTO(location.latitude, location.longitude)
+                sendLocationToServer(locationDTO)
+                Result.success()
+            } else {
+                Result.failure()
             }
-
-            // Obtener la ubicación actual
-            locationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    Coordinates.latitude = location.latitude
-                    Coordinates.longitude = location.longitude
-                    Log.d("LocationWorker", "Latitud: ${location.latitude}, Longitud: ${location.longitude}")
-                }
-            }
-            return Result.success()
         } catch (e: Exception) {
-            e.printStackTrace()
-            return Result.failure()
+            Result.failure()
         }
+    }
+
+    private suspend fun getLocationWithTimeout(): Location? =
+        withContext(Dispatchers.IO) {
+            if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return@withContext null
+            }
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
+            val locationTask = fusedLocationClient.lastLocation
+            val location = Tasks.await(locationTask)
+            location
+        }
+
+
+    private suspend fun sendLocationToServer(locationDTO: LocationDTO) {
+        val apiService = RetrofitHelper.getApiService()
+        val response = apiService.sendLocation(locationDTO)
+        if (response.isSuccessful) response.body() else Log.d("com.example.location.domain.LocationWorker", "Fail: $response")
     }
 }
